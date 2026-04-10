@@ -1,0 +1,26 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "goldenbucket:item/golden_bucket_empty"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "goldenbucket:fluid": 0.1
+      },
+      "model": "goldenbucket:item/golden_water_bucket"
+    },
+    {
+      "predicate": {
+        "goldenbucket:fluid": 0.2
+      },
+      "model": "goldenbucket:item/golden_lava_bucket"
+    },
+    {
+      "predicate": {
+        "goldenbucket:fluid": 0.3
+      },
+      "model": "goldenbucket:item/golden_milk_bucket"
+    }
+  ]
+}
