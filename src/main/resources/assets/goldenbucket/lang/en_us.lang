@@ -1,0 +1,4 @@
+item.goldenbucket.golden_bucket.name=Golden Bucket
+item.goldenbucket.golden_bucket.tooltip=Stored Fluid: %s (%s/%s mB)
+item.goldenbucket.golden_bucket.sneak_tooltip=Shift + Right Click to place without picking up fluid
+item.goldenbucket.empty=Empty

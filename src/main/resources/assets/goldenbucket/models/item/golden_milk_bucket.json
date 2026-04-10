@@ -1,0 +1,8 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "goldenbucket:item/golden_bucket_empty",
+    "layer1": "goldenbucket:item/golden_milk_bucket",
+    "layer2": "goldenbucket:item/golden_bucket_cover"
+  }
+}
