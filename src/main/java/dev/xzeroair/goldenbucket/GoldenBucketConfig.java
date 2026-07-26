@@ -24,6 +24,10 @@ public final class GoldenBucketConfig {
             .comment("Allows the Golden Bucket to collect milk from cows and drink it like a normal milk bucket.")
             .define("allowMilk", true);
 
+    private static final ForgeConfigSpec.BooleanValue USE_FLUID_BLACKLIST = BUILDER
+            .comment("When true, allowedFluids becomes a blacklist instead of a whitelist.")
+            .define("useFluidBlacklist", false);
+
     private static final ResourceLocation MILK_ID = fluidId("minecraft:milk");
 
     static final ForgeConfigSpec SPEC = BUILDER.build();
@@ -38,12 +42,13 @@ public final class GoldenBucketConfig {
     }
 
     public static boolean isFluidAllowed(Fluid fluid) {
-        if (isMilk(fluid)) {
-            return ALLOW_MILK.get();
-        }
-
         ResourceLocation key = ForgeRegistries.FLUIDS.getKey(fluid);
-        return key != null && allowedFluids.contains(key);
+        if (key == null) {
+            return false;
+        }
+        boolean listed = allowedFluids.contains(key);
+        boolean permittedByFilter = USE_FLUID_BLACKLIST.get() ? !listed : listed;
+        return permittedByFilter && (!isMilk(fluid) || ALLOW_MILK.get());
     }
 
     public static Fluid milkFluid() {
@@ -52,7 +57,7 @@ public final class GoldenBucketConfig {
 
     public static boolean isMilk(Fluid fluid) {
         ResourceLocation key = ForgeRegistries.FLUIDS.getKey(fluid);
-        return key != null && "milk".equals(key.getPath());
+        return MILK_ID.equals(key);
     }
 
     private static ResourceLocation fluidId(String value) {
