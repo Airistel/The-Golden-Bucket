@@ -28,6 +28,7 @@ import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
@@ -54,7 +55,7 @@ public class GoldenBucketItem extends Item {
         ItemStack stack = player.getHeldItem(hand);
         GoldenBucketFluidHandler fluidHandler = new GoldenBucketFluidHandler(stack);
         FluidStack storedFluid = fluidHandler.getFluid();
-        if (storedFluid != null && GoldenBucketConfig.isMilk(storedFluid.getFluid())) {
+        if (storedFluid != null && GoldenBucketConfig.isMilk(storedFluid.getFluid()) && !player.isSneaking()) {
             player.setActiveHand(hand);
             return new ActionResult<>(EnumActionResult.SUCCESS, stack);
         }
@@ -183,7 +184,11 @@ public class GoldenBucketItem extends Item {
         }
 
         if (!world.isRemote) {
-            world.setBlockToAir(blockPos);
+            if (state.getBlock() instanceof IFluidBlock) {
+                ((IFluidBlock) state.getBlock()).drain(world, blockPos, true);
+            } else {
+                world.setBlockToAir(blockPos);
+            }
             fluidHandler.fill(resource, true);
         }
 
@@ -198,6 +203,14 @@ public class GoldenBucketItem extends Item {
 
         if (drained == null || drained.amount != BUCKET_VOLUME || !player.canPlayerEdit(targetPos, side, fluidHandler.getContainer())) {
             return false;
+        }
+
+        if (GoldenBucketConfig.isMilk(drained.getFluid())) {
+            if (!world.isRemote) {
+                fluidHandler.drain(BUCKET_VOLUME, true);
+            }
+            world.playSound(player, targetPos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
+            return true;
         }
 
         Block block = getBlockForFluid(drained.getFluid());
@@ -225,6 +238,9 @@ public class GoldenBucketItem extends Item {
 
     @Nullable
     private Fluid getFluidFromState(IBlockState state) {
+        if (state.getBlock() instanceof IFluidBlock) {
+            return ((IFluidBlock) state.getBlock()).getFluid();
+        }
         Material material = state.getMaterial();
         if (material == Material.WATER) {
             return FluidRegistry.WATER;
@@ -236,6 +252,9 @@ public class GoldenBucketItem extends Item {
     }
 
     private boolean isSourceBlock(IBlockState state) {
+        if (state.getBlock() instanceof IFluidBlock) {
+            return true;
+        }
         return state.getBlock() instanceof BlockLiquid && state.getValue(BlockLiquid.LEVEL) == 0;
     }
 
@@ -247,7 +266,7 @@ public class GoldenBucketItem extends Item {
         if (fluid == FluidRegistry.LAVA) {
             return Blocks.FLOWING_LAVA;
         }
-        return null;
+        return fluid.getBlock();
     }
 
     @Nullable
@@ -271,7 +290,7 @@ public class GoldenBucketItem extends Item {
         if (GoldenBucketConfig.isMilk(fluid)) {
             return 0.3F;
         }
-        return 0.0F;
+        return 0.1F;
     }
 
     private String getFluidName(@Nullable FluidStack fluid) {
@@ -295,7 +314,7 @@ public class GoldenBucketItem extends Item {
 
         @Override
         public boolean canDrainFluidType(FluidStack fluid) {
-            return fluid != null && GoldenBucketConfig.isFluidAllowed(fluid.getFluid());
+            return fluid != null;
         }
     }
 }
