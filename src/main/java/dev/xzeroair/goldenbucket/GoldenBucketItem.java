@@ -168,28 +168,44 @@ public class GoldenBucketItem extends Item {
         if (fluid != null && fluid.getFluid() == FluidRegistry.LAVA) {
             return 0xFF6A00;
         }
+        if (fluid != null && GoldenBucketConfig.isMilk(fluid.getFluid())) {
+            return 0xFFFFFF;
+        }
         return 0x3F76E4;
     }
 
     private boolean tryPickupFluid(World world, EntityPlayer player, GoldenBucketFluidHandler fluidHandler, BlockPos blockPos) {
         IBlockState state = world.getBlockState(blockPos);
         Fluid fluid = getFluidFromState(state);
-        if (fluid == null || !GoldenBucketConfig.isFluidAllowed(fluid) || !isSourceBlock(state)) {
+        if (fluid == null || !GoldenBucketConfig.isFluidAllowed(fluid)) {
             return false;
         }
 
         FluidStack resource = new FluidStack(fluid, BUCKET_VOLUME);
+        if (state.getBlock() instanceof IFluidBlock) {
+            FluidStack simulatedDrain = ((IFluidBlock) state.getBlock()).drain(world, blockPos, false);
+            if (simulatedDrain == null || simulatedDrain.amount != BUCKET_VOLUME || simulatedDrain.getFluid() != fluid) {
+                return false;
+            }
+        } else if (!isSourceBlock(state)) {
+            return false;
+        }
+
         if (fluidHandler.fill(resource, false) != BUCKET_VOLUME) {
             return false;
         }
 
         if (!world.isRemote) {
             if (state.getBlock() instanceof IFluidBlock) {
-                ((IFluidBlock) state.getBlock()).drain(world, blockPos, true);
+                FluidStack drained = ((IFluidBlock) state.getBlock()).drain(world, blockPos, true);
+                if (drained == null || drained.amount != BUCKET_VOLUME || drained.getFluid() != fluid) {
+                    return false;
+                }
+                fluidHandler.fill(drained, true);
             } else {
                 world.setBlockToAir(blockPos);
+                fluidHandler.fill(resource, true);
             }
-            fluidHandler.fill(resource, true);
         }
 
         world.playSound(player, blockPos, fluid == FluidRegistry.LAVA ? SoundEvents.ITEM_BUCKET_FILL_LAVA : SoundEvents.ITEM_BUCKET_FILL, SoundCategory.BLOCKS, 1.0F, 1.0F);
@@ -252,9 +268,6 @@ public class GoldenBucketItem extends Item {
     }
 
     private boolean isSourceBlock(IBlockState state) {
-        if (state.getBlock() instanceof IFluidBlock) {
-            return true;
-        }
         return state.getBlock() instanceof BlockLiquid && state.getValue(BlockLiquid.LEVEL) == 0;
     }
 
