@@ -57,6 +57,6 @@ public final class GoldenBucketClientEvents {
             return 0.3F;
         }
 
-        return 0.0F;
+        return 0.1F;
     }
 }
