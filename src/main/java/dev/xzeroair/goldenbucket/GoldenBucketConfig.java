@@ -50,12 +50,14 @@ public final class GoldenBucketConfig {
     }
 
     public static boolean isFluidAllowed(Fluid fluid) {
-        if (isMilk(fluid)) {
-            return isMilkAllowed();
-        }
-
         String fluidName = FluidRegistry.getFluidName(fluid);
-        return fluidName != null && readAllowedFluids().contains(normalizeFluidId(fluidName));
+        if (fluidName == null) {
+            return false;
+        }
+        boolean listed = readAllowedFluids().contains(normalizeFluidId(fluidName));
+        boolean blacklist = config != null && config.getBoolean("useFluidBlacklist", CATEGORY_GENERAL, false,
+                "When true, allowedFluids becomes a blacklist instead of a whitelist.");
+        return (blacklist ? !listed : listed) && (!isMilk(fluid) || isMilkAllowed());
     }
 
     public static FluidStack milkStack() {

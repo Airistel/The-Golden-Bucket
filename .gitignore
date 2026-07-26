@@ -1,0 +1,17 @@
+.gradle/
+build/
+run/
+runServer/
+run-data/
+logs/
+*.log
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.vscode/
+.DS_Store
