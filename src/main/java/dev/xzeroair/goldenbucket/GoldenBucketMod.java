@@ -13,7 +13,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 public final class GoldenBucketMod {
     public static final String MODID = "goldenbucket";
     public static final String NAME = "Golden Bucket";
-    public static final String VERSION = "1.0.0";
+    public static final String VERSION = "1.0.1";
 
     @GameRegistry.ObjectHolder(MODID + ":golden_bucket")
     public static final Item GOLDEN_BUCKET = null;
