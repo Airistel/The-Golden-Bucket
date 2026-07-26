@@ -41,6 +41,6 @@ public final class GoldenBucketClientEvents {
         if (GoldenBucketConfig.isMilk(fluid)) {
             return 0.3F;
         }
-        return 0.0F;
+        return 0.1F;
     }
 }
