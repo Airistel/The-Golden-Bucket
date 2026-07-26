@@ -252,7 +252,7 @@ public class GoldenBucketItem extends Item {
 
         @Override
         public boolean canDrainFluidType(FluidStack fluid) {
-            return !fluid.isEmpty() && GoldenBucketConfig.isFluidAllowed(fluid.getFluid());
+            return !fluid.isEmpty();
         }
     }
 }
