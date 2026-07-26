@@ -53,7 +53,7 @@ public class GoldenBucketItem extends Item {
     public ActionResult<ItemStack> use(World level, PlayerEntity player, Hand hand) {
         ItemStack stack = player.getItemInHand(hand);
         GoldenBucketFluidHandler fluidHandler = new GoldenBucketFluidHandler(stack);
-        if (GoldenBucketConfig.isMilk(fluidHandler.getFluid().getFluid())) {
+        if (GoldenBucketConfig.isMilk(fluidHandler.getFluid().getFluid()) && !player.isShiftKeyDown()) {
             player.startUsingItem(hand);
             return ActionResult.sidedSuccess(stack, level.isClientSide);
         }
@@ -123,7 +123,9 @@ public class GoldenBucketItem extends Item {
     public ItemStack finishUsingItem(ItemStack stack, World level, LivingEntity entity) {
         if (GoldenBucketConfig.isMilk(getFluid(stack).getFluid())) {
             entity.removeAllEffects();
-            new GoldenBucketFluidHandler(stack).drain(FluidAttributes.BUCKET_VOLUME, FluidAction.EXECUTE);
+            if (!level.isClientSide && (!(entity instanceof PlayerEntity) || !((PlayerEntity) entity).abilities.instabuild)) {
+                new GoldenBucketFluidHandler(stack).drain(FluidAttributes.BUCKET_VOLUME, FluidAction.EXECUTE);
+            }
         }
 
         return stack;
@@ -189,6 +191,14 @@ public class GoldenBucketItem extends Item {
             return false;
         }
 
+        if (GoldenBucketConfig.isMilk(drained.getFluid())) {
+            if (!level.isClientSide) {
+                fluidHandler.drain(FluidAttributes.BUCKET_VOLUME, FluidAction.EXECUTE);
+            }
+            playSound(level, player, targetPos, SoundEvents.BUCKET_EMPTY);
+            return true;
+        }
+
         Fluid fluid = drained.getFluid();
         BlockState targetState = level.getBlockState(targetPos);
         boolean canContain = targetState.getBlock() instanceof ILiquidContainer
@@ -242,7 +252,7 @@ public class GoldenBucketItem extends Item {
 
         @Override
         public boolean canDrainFluidType(FluidStack fluid) {
-            return !fluid.isEmpty() && GoldenBucketConfig.isFluidAllowed(fluid.getFluid());
+            return !fluid.isEmpty();
         }
     }
 }
